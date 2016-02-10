@@ -68,6 +68,6 @@ controller.hears(['up'],['direct_message','direct_mention','mention'],function(b
 
 controller.hears(['help','what do you do'],['direct_message','direct_mention','mention'],function(bot,message) {
   
-	bot.reply(message,'You can use me to FIND OUT WHAT\'S PLAYING, PAUSE, PLAY, SKIP or turn the VOLUME UP or DOWN. And hopefully soon I\'ll be able to search for music,too.');
+	bot.reply(message,'Find out WHAT\'S PLAYING, PAUSE, PLAY, SKIP or turn the VOLUME UP or DOWN. And hopefully soon be able to search for music, too.');
 });
 
