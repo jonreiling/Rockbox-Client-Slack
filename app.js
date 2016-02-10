@@ -66,3 +66,10 @@ controller.hears(['up'],['direct_message','direct_mention','mention'],function(b
 	});
 });
 
+controller.hears(['help','what do you do'],['direct_message','direct_mention','mention'],function(bot,message) {
+  
+  	request(process.env.PASSTHROUGH_SERVER + '/api/volume/+10', function (error, response, body) {
+		bot.reply(message,'You can use me to FIND OUT WHAT\'S PLAYING, PAUSE, PLAY, SKIP or turn the VOLUME UP or DOWN. And hopefully soon I\'ll be able to search for music,too.');
+	});
+});
+
