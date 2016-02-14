@@ -1,5 +1,4 @@
 require('dotenv-safe').load();
-
 var request = require('request');
 var Botkit = require('botkit');
 var controller = Botkit.slackbot();
@@ -13,14 +12,98 @@ bot.startRTM(function(err,bot,payload) {
   }
 });
 
+controller.hears(['^(play|add) the album (.*) by (.*)$'],['direct_message','direct_mention','mention'],function(bot,message) {
+	
+	bot.reply(message,'Looking now... This may take a moment.');
 
-controller.hears(['^play (.*) by (.*)$'],['direct_message','direct_mention','mention'],function(bot,message) {
+	var albumName = simpleescape(message.match[2]);
+	var artistName = simpleescape(message.match[3]);
+
+	var requestURL = 'https://api.spotify.com/v1/search?q=album:%22' + albumName + '%22%20artist:%22'+artistName+'%22&type=album&limit=1&market=US';
+
+  	request(requestURL, function (error, response, body) {
+
+		if (!error && response.statusCode == 200) {
+			
+	  	 	var rawResponseJSON = JSON.parse( body );
+
+			if (rawResponseJSON.albums.total == 0 ) {
+
+				bot.reply(message,'Sorry, couldn\'t find it. Be sure to double check the spelling, though. I\'m kind of a stickler.');
+
+			} else {
+
+
+				var album = rawResponseJSON.albums.items[0];
+
+
+			  	request("https://api.spotify.com/v1/albums/" + album.id, function (albumerror, albumresponse, albumbody) {
+
+			  		var album = JSON.parse( albumbody );
+					var albumYear = new Date(Date.parse(album.release_date))
+			  		var albumName = '*"' + (album.name) + ' ('+albumYear.getFullYear()+')"* by _' + album.artists[0].name +'_' ;
+
+					bot.startConversation(message,function(err,convo) {
+
+					    convo.ask({
+					    	"text":'To confirm, you wanted to play the entire album ' + albumName + ', correct? It\'s '+album.tracks.items.length+' tracks long.',
+					    	"icon_url":album.images[2].url,
+							"username":bot.identity.name
+					    },[
+					      {
+					        pattern: bot.utterances.yes,
+					        callback: function(response,convo) {
+					          convo.say('Adding now...');
+							  request(process.env.PASSTHROUGH_SERVER + '/api/add/' + album.uri, function (error, response, body) {
+						          convo.say('Done. Coming right up.');
+						          convo.next();
+							  });
+
+					        }
+					      },
+					      {
+					        pattern: bot.utterances.no,
+					        callback: function(response,convo) {
+					          convo.say('Phew. Glad I asked.');
+					          convo.next();
+					        }
+					      },
+					      {
+					        default: true,
+					        callback: function(response,convo) {
+					          convo.repeat();
+					          convo.next();
+					        }
+					      }
+					    ]);
+
+					  })
+				  	});
+
+				  	/*
+
+
+				var albumName = '*"' + (album.name) + '"*';
+
+				  */
+			}
+
+		} else {
+			bot.reply(message,'Shoot. For some reason, I couldn\'t make the request properly.');
+		}  		
+
+  	});
+
+});
+
+
+controller.hears(['^(play|add) (.*) by (.*)$'],['direct_message','direct_mention','mention'],function(bot,message) {
 	
 
 	bot.reply(message,'Searching now...');
 
-	var songName = simpleescape(message.match[1]);
-	var artistName = simpleescape(message.match[2]);
+	var songName = simpleescape(message.match[2]);
+	var artistName = simpleescape(message.match[3]);
 	console.log(songName);
 
 	var requestURL = 'https://api.spotify.com/v1/search?q=track:%22' + songName + '%22%20artist:%22'+artistName+'%22&type=track&limit=1&market=US';
@@ -43,7 +126,11 @@ controller.hears(['^play (.*) by (.*)$'],['direct_message','direct_mention','men
 
 				  bot.startConversation(message,function(err,convo) {
 
-				    convo.ask('To confirm, you wanted to play ' + trackName+', yeah?',[
+				    convo.ask({
+				    	"text":'To confirm, you wanted to play ' + trackName+', yeah?',
+   						"icon_url":track.album.images[2].url,
+						"username":bot.identity.name
+				    },[
 				      {
 				        pattern: bot.utterances.yes,
 				        callback: function(response,convo) {
@@ -82,6 +169,7 @@ controller.hears(['^play (.*) by (.*)$'],['direct_message','direct_mention','men
   	});
 
 });
+
 
 controller.hears(['playing','song is this'],['direct_message','direct_mention','mention'],function(bot,message) {
   
@@ -145,7 +233,7 @@ controller.hears(['up'],['direct_message','direct_mention','mention'],function(b
 
 controller.hears(['help','what do you do'],['direct_message','direct_mention','mention'],function(bot,message) {
   
-	bot.reply(message,'Find out *what\s playing*, *pause*, *play*, *skip* or turn the volume *up* or *down*. You can also add songs to the queue like this: _play Loud Pipes by Ratatat_.');
+	bot.reply(message,'Find out *what\'s playing*, *pause*, *play*, *skip* or turn the volume *up* or *down*. You can also add songs to the queue (_"play Loud Pipes by Ratatat"_) or even entire albums (_"add the album Revolver by The Beatles"_.)');
 });
 
 function simpleescape(s) {
