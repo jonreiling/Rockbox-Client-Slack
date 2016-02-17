@@ -236,6 +236,24 @@ controller.hears(['help','what do you do'],['direct_message','direct_mention','m
 	bot.reply(message,'Find out *what\'s playing*, *pause*, *play*, *skip* or turn the volume *up* or *down*. You can also add songs to the queue (_"play Loud Pipes by Ratatat"_) or even entire albums (_"add the album Revolver by The Beatles"_.)');
 });
 
+// receive outgoing or slash commands
+// if you are already using Express, you can use your own server instance...
+
+var server_port = process.env.OPENSHIFT_NODEJS_PORT || 3000;
+
+controller.setupWebserver(process.env.port,function(err,webserver) {
+
+  controller.createWebhookEndpoints(controller.webserver);
+
+});
+
+controller.on('slash_command',function(bot,message) {
+
+  // reply to slash command
+  bot.replyPublic(message,'Everyone can see the results of this slash command');
+
+});
+
 function simpleescape(s) {
 
 	s = s.replace("'",'\'')
