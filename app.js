@@ -1,6 +1,12 @@
 if (!process.env.OPENSHIFT_NODEJS_PORT) {
 	require('dotenv-safe').load();
 }
+
+var http = require('http');
+var express = require('express');
+var app = express();
+var server = http.createServer(app);
+
 var request = require('request');
 var Botkit = require('botkit');
 var controller = Botkit.slackbot();
@@ -241,13 +247,14 @@ controller.hears(['help','what do you do'],['direct_message','direct_mention','m
 // receive outgoing or slash commands
 // if you are already using Express, you can use your own server instance...
 
-var server_port = process.env.OPENSHIFT_NODEJS_PORT || 3000;
-
-controller.setupWebserver(server_port,function(err,webserver) {
-
-  controller.createWebhookEndpoints(controller.webserver);
-
+var server_port = process.env.OPENSHIFT_NODEJS_PORT || 3000
+var server_ip_address = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1'
+ 
+server.listen(server_port, server_ip_address, function () {
+  console.log( "Listening on " + server_ip_address + ", server_port " + server_port )
+  controller.createWebhookEndpoints(app);
 });
+
 
 controller.on('slash_command',function(bot,message) {
 

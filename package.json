@@ -9,6 +9,7 @@
   "dependencies": {
     "botkit":"latest",
     "request":"latest",
-    "dotenv-safe":"latest"
+    "dotenv-safe":"latest",
+    "express": "3.4.8"
   }
 }
