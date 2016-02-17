@@ -241,7 +241,7 @@ controller.hears(['help','what do you do'],['direct_message','direct_mention','m
 
 var server_port = process.env.OPENSHIFT_NODEJS_PORT || 3000;
 
-controller.setupWebserver(process.env.port,function(err,webserver) {
+controller.setupWebserver(server_port,function(err,webserver) {
 
   controller.createWebhookEndpoints(controller.webserver);
 
