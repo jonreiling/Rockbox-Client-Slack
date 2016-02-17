@@ -1,4 +1,6 @@
-require('dotenv-safe').load();
+if (!process.env.OPENSHIFT_NODEJS_PORT) {
+	require('dotenv-safe').load();
+}
 var request = require('request');
 var Botkit = require('botkit');
 var controller = Botkit.slackbot();
