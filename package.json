@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node app.js"
   },
+  "main":"app.js",
   "dependencies": {
     "botkit":"latest",
     "request":"latest",
